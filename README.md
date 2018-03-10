@@ -1,1 +1,1 @@
-# marketplace
+# Skeleton project for Swagger

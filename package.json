@@ -1,0 +1,33 @@
+{
+  "name": "globatalent-back",
+  "version": "0.0.1",
+  "private": true,
+  "description": "New Swagger API Project",
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "main": "app.js",
+  "dependencies": {
+    "base64-img": "^1.0.4",
+    "cors": "^2.8.4",
+    "express": "^4.12.3",
+    "jwt-simple": "^0.5.1",
+    "lodash": "^4.17.5",
+    "log": "^1.4.0",
+    "moment": "^2.21.0",
+    "mongodb": "2.2.31",
+    "nodemailer": "^4.6.2",
+    "read-yaml": "^1.1.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "swagger-express-mw": "^0.1.0"
+  },
+  "devDependencies": {
+    "should": "^7.1.0",
+    "supertest": "^1.0.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "swagger project test"
+  }
+}

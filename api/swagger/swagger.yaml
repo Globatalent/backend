@@ -1,0 +1,516 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Globatalent API
+
+host: localhost:8080
+ 
+basePath: /globatalent/api
+# 
+schemes:
+
+  - http
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+
+
+#################################################### LOGIN
+
+
+  /login:
+    x-swagger-router-controller: login.controller
+    post:
+      description: Login into the application
+      operationId: login
+      parameters:
+        - name: credentials
+          in: body
+          description: username and password
+          required: true
+          schema:
+            $ref: "#/definitions/loginArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/loginResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+#################################################### REGISTER
+
+
+  /register:
+    x-swagger-router-controller: register.controller
+    post:
+      description: Login into the application
+      operationId: register
+      parameters:
+        - name: registerInfo
+          in: body
+          description: register arguments
+          required: true
+          schema:
+            $ref: "#/definitions/registerArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+#################################################### HOME            
+
+
+  /private/home/{username}/overview:
+    x-swagger-router-controller: investments.controller
+    get:
+      description: Get information about investments
+      operationId: getInvestmentsOverview
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string      
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"  
+            
+            
+  /private/home/{username}/investments:
+    x-swagger-router-controller: investments.controller
+    get:
+      description: Get list of sportsman where user have invested
+      operationId: getInvestments
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+
+            
+  /private/home/{username}/watchlist:
+    x-swagger-router-controller: investments.controller
+    get:
+      description: Get list of sportsman that user likes
+      operationId: getWatchlist
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+    post:
+      description: Add sportsman to user watchlist
+      operationId: postSportsman
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - name: sportsmanInfo
+          in: body
+          description: sportsman name and token value
+          required: true
+          schema:
+            $ref: "#/definitions/sportsmanArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+    delete:
+      description: Remove sportsman from user watchlist
+      operationId: deleteSportsman
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - name: sportsmanInfo
+          in: body
+          description: sportsman name
+          required: true
+          schema:
+            $ref: "#/definitions/sportsmanName"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /private/home/founds:  
+    x-swagger-router-controller: investments.controller
+    put:
+      description: Add founds to user account
+      operationId: putFounds
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string      
+        - name: atributes
+          in: body
+          description: Username and amount
+          required: true
+          schema:
+            $ref: "#/definitions/foundsArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+#################################################### SPORTSMEN
+
+
+  /sportsmen:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get list of all sportsmen
+      operationId: getSportsmen
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericArrayResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /sportsmen/{sportsmanID}:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get general information about a sportsman
+      operationId: getSportsman
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse" 
+            
+            
+  /sportsmen/{sportsmanID}/information:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get details about a sportsman
+      operationId: getSportsmanDetail
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /sportsmen/{sportsmanID}/milestones:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get milestones about a sportsman
+      operationId: getSportsmanMilestones
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericArrayResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse" 
+            
+            
+  /sportsmen/{sportsmanID}/tokens:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get tokens sold, total and price about sportsman
+      operationId: getSportsmanStock
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /sportsmen/{sportsmanID}/expenses:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get expenses about a sportsman
+      operationId: getSportsmanExpenses
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericArrayResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+  /sportsmen/{sportsmanID}/picture:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get sportsman profile picture
+      operationId: getSportsmanPicture
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"          
+            
+            
+  /private/sportsmen/tokens:  
+    x-swagger-router-controller: sportsman.controller
+    put:
+      description: Get sportsman tokens spending founds
+      operationId: putTokens
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string      
+        - name: atributes
+          in: body
+          description: Username and amount
+          required: true
+          schema:
+            $ref: "#/definitions/tokenArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"          
+            
+            
+#################################################### DEFINITIONS            
+            
+            
+  /swagger:
+    x-swagger-pipe: swagger_raw
+definitions:
+
+
+#################################################### ARGUMENTS            
+
+
+  loginArguments:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+        
+  sportsmanArguments:
+    type: object
+    properties:
+      sportsmanID:
+        type: string
+      tokenValue:
+        type: string
+        
+  sportsmanName:   
+    type: object
+    properties:
+      sportsmanID:
+        type: string
+        
+  registerArguments:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      username:
+        type: string
+      birthDate:
+        type: string
+      role:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+        
+  foundsArguments:
+    type: object
+    properties:
+      username:
+        type: string
+      amount:
+        type: string
+        
+  tokenArguments:
+    type: object
+    properties:
+      username:
+        type: string
+      amount:
+        type: string
+      sportsmanID:
+        type: string
+        
+        
+#################################################### RESPONSES         
+        
+        
+  genericResponse:
+    type: object
+
+  genericArrayResponse:
+    type: array
+    items:
+      type: object
+    
+  loginResponse:
+    type: object
+    properties:
+      token:
+        type: string
+    
+  errorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
