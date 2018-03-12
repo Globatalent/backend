@@ -7,6 +7,7 @@ var appProperties = require('../helpers/config.helper');
 var expectations = require('../expectations/sportsman.expectations');
 var pictureHelper = require('../helpers/picture.helper');
 var userRepository = require('../repositories/user.repository');
+var sportsmanRepository = require('../repositories/sportsman.repository');
 var investmentsService = require('../services/investments.service');
 
 
@@ -23,16 +24,48 @@ var collection = "sportsman"
 function getSportsmen() {
   return new Promise((resolve, reject) => {
     return resolve(
-      expectations.sportsmen.map(sportsman => _.pick(sportsman, ['_id', 'completeName']))
+      expectations.sportsmen.map(sportsman => _.pick(sportsman, ['_id', 'completeName', 'sport', 'country']))
+
     );
   });
 }
 
+
+function getSportsmenMarket() {
+  return new Promise((resolve, reject) => {
+    log.info(`-----> ${nameModule} ${getSportsmenMarket.name}`);
+
+    getSportsmen()
+      .then(sportsmanResult => {
+        log.info(`-----> ${nameModule} ${getSportsmenMarket.name} OUT --> result: ${JSON.stringify(sportsmanResult)}`);
+
+        return Promise.all(sportsmanResult.map(addTokenInfo));
+      }).then(resolve)
+  }).catch(err => {
+    log.error(`-----> ${nameModule} ${getSportsmenMarket.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+    reject(err);
+  })
+}
+
 function getSportsman(params) {
   return new Promise((resolve, reject) => {
-    return resolve(
-      expectations.sportsmen.find(sportman => sportman._id == params.id)
-    );
+    var sportsman = expectations.sportsmen.find(sportman => sportman._id == params.id)
+
+    var criteria = {
+      sportsmanID: params.id
+    };
+    log.info(`-----> ${nameModule} ${getSportsman.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
+    userRepository.getUserByCriteria(criteria, "sportsman")
+      .then(result => {
+        sportsman.noOfLikes = result.noOfLikes
+      })
+      .then(result => {
+        resolve(sportsman)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${getSportsmenMarket.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err);
+      });
   });
 }
 
@@ -63,7 +96,7 @@ function getSportsmanStock(sportsmanID) {
         sportsmanID: sportsmanID
       };
 
-      userRepository.getUserByCriteria(criteria, collection)
+      userRepository.getUserByCriteria(criteria, "sportsman")
         .then(result => {
           log.info(`-----> ${nameModule} ${getSportsmanStock.name} OUT --> result: ${JSON.stringify(result)}`);
           resolve(result)
@@ -100,20 +133,22 @@ function putTokens(username, sportsmanID, amount) {
       var resultInvestments;
       var checkParamsResult;
 
+      let sportsmanExpectation = expectations.sportsmen.find(sportsman => sportsman._id === sportsmanID);
+
       getSportsmanStock(sportsmanID)
         .then(result => {
-          resultGetSportsmanStock = result;
-          return investmentsService.getInvestorField(username, "totalFounds");
+          resultGetSportsmanStock = result;          
+          return investmentsService.getInvestorField(username, "overview");
         })
         .then(result => {
           resultInvestments = result;
           log.info(`-----> ${nameModule} ${putTokens.name} OUT --> result: ${JSON.stringify(result)}`);
-          return checkparams(resultGetSportsmanStock, resultInvestments, amount)
+          return checkparams(resultGetSportsmanStock, resultInvestments.overview.cashFounds, amount)
         })
         .then(result => {
           if (result.result == "success") {
             checkParamsResult = result
-            return moveTokens(username, sportsmanID, amount,resultGetSportsmanStock.tokens)
+            return moveTokens(username, sportsmanID, amount, resultGetSportsmanStock.tokens, sportsmanExpectation.completeName)
           }
           else {
             resolve(result)
@@ -136,30 +171,50 @@ function putTokens(username, sportsmanID, amount) {
 
 function getSportsmanPicture(params) {
   return new Promise((resolve, reject) => {
+    sportsmanRepository.getPicture(
+      {
+        sportsmanId: params.id,
+      },
+      'sportsman_images'
+    )
+      .then(data => {
+        log.debug(`-----> ${nameModule} ${getSportsmanPicture.name} Got image`)
+        return resolve(data.picture)
+      }).catch(err => {
+        log.debug(`-----> ${nameModule} ${getSportsmanPicture.name} Error getting image`)
+        return reject(err)
+      })
+
+  });
+}
+
+function setSportsmanPicture(params) {
+  return new Promise((resolve, reject) => {
     let sportsman = expectations.sportsmenPicture.find(sportman => sportman._id == params.id);
-    console.log(sportsman)
-    if (sportsman) {
-      pictureHelper.imageToBase64(sportsman.picture)
-        .then(data => {
-          log.debug(`-----> ${nameModule} ${getSportsmanPicture.name} Img encoded`)
-          return resolve(data)
-        }).catch(err => {
-          log.debug(`-----> ${nameModule} ${getSportsmanPicture.name} Error getting encoded image`)
-          return reject(err)
-        })
-    }
-    log.debug(`-----> ${nameModule} ${getSportsmanPicture.name} Sportsman with id ${params.id} not found`)
+    sportsmanRepository.setPicture(
+      {
+        sportsmanId: params.id,
+        picture: params.file
+      },
+      'sportsman_images'
+    ).then(res => {
+      return resolve(true);
+    }).catch(err => {
+      log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Error setting image`)
+      return reject(err)
+    })
+    log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Sportsman with id ${params.id} not found`)
 
   });
 }
 
 function checkparams(resultGetSportsmanStock, resultInvestments, amount) {
-  console.log(resultGetSportsmanStock.tokens.currentSupply + "sadas" + amount)
-  var ftotalFounds = parseFloat(resultInvestments.totalFounds)
+  var fcashFounds = parseFloat(resultInvestments)
   var famount = parseFloat(amount)
   var ftokenValue = parseFloat(resultGetSportsmanStock.tokens.tokenValue)
   var ftokenSupply = parseFloat(resultGetSportsmanStock.tokens.currentSupply)
-  if (ftotalFounds < (famount * ftokenValue)) {
+
+  if (fcashFounds < (famount * ftokenValue)) {
     return { result: "failed", message: "not enough founds" }
   } else if (ftokenSupply < famount) {
     return { result: "failed", message: "not enough tokens availables to buy" }
@@ -168,10 +223,10 @@ function checkparams(resultGetSportsmanStock, resultInvestments, amount) {
   }
 }
 
-function moveTokens(username, sportsmanID, tokenAmount, tokenParams) {
+function moveTokens(username, sportsmanID, tokenAmount, tokenParams, fullName) {
   return new Promise((resolve, reject) => {
     log.info(`-----> ${nameModule} ${moveTokens.name} (IN) -> username: ${JSON.stringify(username)}`);
-    extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams, sportsmanID)
+    extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams, sportsmanID, fullName)
       .then(result => {
         log.info(`-----> ${nameModule} ${moveTokens.name} (OUT) -> username: ${JSON.stringify(username)}`);
         return extractTokensFromSportsman(tokenAmount, sportsmanID)
@@ -191,7 +246,7 @@ function extractTokensFromSportsman(tokenAmount, sportsmanID) {
     log.info(`-----> ${nameModule} ${extractTokensFromSportsman.name} (IN) -> username: ${sportsmanID} amount: ${tokenAmount}`);
     userRepository.getUserByCriteria({ sportsmanID: sportsmanID }, "sportsman")
       .then(sportsmanResult => {
-        
+
         var currentTokens = parseInt(sportsmanResult.tokens.currentSupply) - parseInt(tokenAmount)
         sportsmanResult.tokens.currentSupply = currentTokens
 
@@ -207,19 +262,20 @@ function extractTokensFromSportsman(tokenAmount, sportsmanID) {
   })
 }
 
-function extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams, sportsmanID) {
+function extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams, sportsmanID, fullName) {
   return new Promise((resolve, reject) => {
     log.info(`-----> ${nameModule} ${extractFoundsFromUserAndInsertTokens.name} (IN) -> username: ${username} amount: ${tokenAmount}`);
     userRepository.getUserByCriteria({ username: username }, "investor")
       .then(userResult => {
-        var temp = parseFloat(userResult.totalFounds) - parseFloat(tokenAmount) * parseFloat(tokenParams.tokenValue)
-        userResult.totalFounds = temp.toString()
+        var temp = parseFloat(userResult.overview.cashFounds) - parseFloat(tokenAmount) * parseFloat(tokenParams.tokenValue)
+        userResult.overview.cashFounds = temp
+        var temp2 = parseFloat(userResult.overview.tokenFounds) + parseFloat(tokenAmount) * parseFloat(tokenParams.tokenValue)
+        userResult.overview.tokenFounds = temp2
         var sportsmanIndex = userResult.investments.findIndex(item => item.sportsman == sportsmanID)
         if (sportsmanIndex == -1) {
-          userResult.investments.push({sportsman : sportsmanID, tokenAmount : 0, tokenValue : tokenParams.tokenValue})
-          sportsmanIndex = userResult.investments.length - 1  
+          userResult.investments.push({ sportsman: sportsmanID, tokenAmount: 0, tokenValue: tokenParams.tokenValue, fullName })
+          sportsmanIndex = userResult.investments.length - 1
         }
-        console.log(sportsmanIndex + "   *****************************************")
         var currentTokens = parseInt(userResult.investments[sportsmanIndex].tokenAmount) + parseInt(tokenAmount)
         userResult.investments[sportsmanIndex].tokenAmount = currentTokens
         return userRepository.updateUser(userResult, "investor")
@@ -234,6 +290,20 @@ function extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams
   })
 }
 
+function addTokenInfo(sportsmanData) {
+  return new Promise((resolve, reject) => {
+    userRepository.getUserByCriteria({ sportsmanID: sportsmanData._id }, "sportsman")
+      .then(result => {
+        Object.assign(sportsmanData, result.tokens)
+        sportsmanData.changes = parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1;
+        resolve(sportsmanData)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${addTokenInfo.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err)
+      })
+  })
+}
 
 module.exports = {
   getSportsmen,
@@ -243,5 +313,7 @@ module.exports = {
   getSportsmanStock,
   getSportsmanExpenses,
   getSportsmanPicture,
-  putTokens
+  setSportsmanPicture,
+  putTokens,
+  getSportsmenMarket
 }

@@ -11,3 +11,6 @@ env | grep '^CONFIG_PATH='
 # Express Api Port
 export PORT="8080"
 env | grep '^PORT='
+# Back api url
+export BACK_HOST="http://localhost:8080"
+export FRONT_HOST="http://localhost:8081"

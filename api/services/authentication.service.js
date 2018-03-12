@@ -155,8 +155,42 @@ function validateToken(req, res, next) {
   }
 }
 
+function checkUser(req, res, next) {
+  log.debug(`${nameModule} ${checkUser.name} (IN)`);
+  
+  try{
+
+    var token = req.headers.authorization.split(" ")[1];
+    log.debug(`${nameModule} ${checkUser.name} --> token: ${token}`);
+
+    var payload = jwt.decode(token, appProperties.getConfig().token_secret);
+
+    if(payload && payload.sub && payload.sub.username === req.params.username){
+      refreshToken(token);
+      next();
+    }else{
+      let jsonResult = {
+        "code": "401",
+        "message": "Not your profile"
+      };
+      res.status(401).send(jsonResult);
+    }
+
+  } catch (err) {
+    log.error(err);
+    jsonResult = {
+      "code": "401",
+      "message": "Malformed authorization token"
+    };
+
+    res.status(401).send(jsonResult);
+  }
+
+}
+
 module.exports = {
   authenticateUser,
   generateToken,
-  validateToken
+  validateToken,
+  checkUser
 };

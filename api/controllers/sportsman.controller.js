@@ -39,6 +39,28 @@ function getSportsmen(req, res) {
 
 }
 
+function getSportsmenMarket(req, res) {
+
+  try {
+
+    log.info(`-----> ${nameController} ${getSportsmen.name} IN --> `);
+
+    sportsmanService
+      .getSportsmenMarket()
+      .then(sportmanList => {
+        log.info(`-----> ${nameController} ${getSportsmenMarket.name} OUT --> result: ${JSON.stringify(sportmanList)}`);
+        res.json(sportmanList);
+      })
+      .catch(err => {
+        controllerHelper.handleGenericErrorResponse(nameController, getSportsmenMarket.name, err, res);
+      })
+
+  } catch (err) {
+    controllerHelper.handleGenericErrorResponse(nameController, getSportsmenMarket.name, err, res);
+  }
+
+}
+
 function getSportsman(req, res) {
 
   try {
@@ -131,13 +153,13 @@ function getSportsmanStock(req, res) {
   try {
 
     const params = {
-      id: req.swagger.params.sportsmanID.value
+      sportsmanID: req.swagger.params.sportsmanID.value
     };
 
     log.info(`-----> ${nameController} ${getSportsmanStock.name} IN --> ${JSON.stringify(params)}`);
 
     sportsmanService
-      .getSportsmanStock(params)
+      .getSportsmanStock(params.sportsmanID)
       .then(sportsmanStock => {
         log.info(`-----> ${nameController} ${getSportsmanStock.name} OUT --> result: ${JSON.stringify(sportsmanStock)}`);
         if (sportsmanStock)
@@ -215,20 +237,47 @@ function getSportsmanPicture(req, res) {
     log.info(`-----> ${nameController} ${getSportsmanStock.name} IN --> ${JSON.stringify(params)}`);
 
     sportsmanService
-      .getSportsmanPhoto(params)
+      .getSportsmanPicture(params)
       .then(sportmanPhoto => {
-        log.info(`-----> ${nameController} ${getSportsmanPhoto.name} OUT --> result: ${JSON.stringify('Photo got correctly')}`);
-        if (sportmanPhoto)
-          res.json(sportmanPhoto);
+        log.info(`-----> ${nameController} ${getSportsmanPicture.name} OUT --> result: ${JSON.stringify('Photo got correctly')}`);
+        if (sportmanPhoto){
+          res.contentType(sportmanPhoto.mimetype);
+          res.end(sportmanPhoto.buffer.buffer);
+        } else
+          res.status(404).json({ message: "Sportman not found" });
+      })
+      .catch(err => {
+        controllerHelper.handleGenericErrorResponse(nameController, getSportsmanPicture.name, err, res);
+      })
+
+  } catch (err) {
+    controllerHelper.handleGenericErrorResponse(nameController, getSportsmanPicture.name, err, res);
+  }
+}
+
+function setSportsmanPicture(req, res) {
+  try {
+    const params = {
+      id: req.swagger.params.sportsmanID.value,
+      file: req.swagger.params.newPicture.value
+    };
+    log.info(`-----> ${nameController} ${getSportsmanStock.name} IN --> ${JSON.stringify(params)}`);
+
+    sportsmanService
+      .setSportsmanPicture(params)
+      .then(result => {
+        log.info(`-----> ${nameController} ${setSportsmanPicture.name} OUT --> result: ${JSON.stringify('Photo saved correctly')}`);
+        if (result)
+          res.json({message: "Photo saved correctly"});
         else
           res.status(404).json({ message: "Sportman not found" });
       })
       .catch(err => {
-        controllerHelper.handleGenericErrorResponse(nameController, getSportsmanPhoto.name, err, res);
+        controllerHelper.handleGenericErrorResponse(nameController, setSportsmanPicture.name, err, res);
       })
 
   } catch (err) {
-    controllerHelper.handleGenericErrorResponse(nameController, getSportsmanStock.name, err, res);
+    controllerHelper.handleGenericErrorResponse(nameController, setSportsmanPicture.name, err, res);
   }
 }
 
@@ -240,5 +289,7 @@ module.exports = {
   getSportsmanStock,
   getSportsmanExpenses,
   putTokens,
-  getSportsmanPicture
+  getSportsmanPicture,
+  setSportsmanPicture,
+  getSportsmenMarket
 }

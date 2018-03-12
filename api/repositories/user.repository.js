@@ -83,7 +83,8 @@ function updateUser(user, collection) {
 
       log.info(`-----> ${nameModule} ${updateUser.name} (IN) -> user: ${JSON.stringify(user)}, collection: ${collection}`);
       
-      mongoDbHelper.updateItem({username : user.username}, user, collection)
+      let criteria = collection == 'investor' ? {username : user.username} : {sportsmanID : user.sportsmanID} 
+      mongoDbHelper.updateItem(criteria, user, collection)
       .then(result => {   
         delete result._id;
         resolve(result);

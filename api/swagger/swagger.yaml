@@ -71,7 +71,44 @@ paths:
             $ref: "#/definitions/errorResponse"
             
             
-#################################################### HOME            
+#################################################### HOME     
+
+  /private/home/{username}/validate:
+    x-swagger-router-controller: investments.controller
+    put:
+      description: Get information about investments
+      operationId: validate
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string      
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - in: body
+          name: body
+          required: true
+          description: The step of the validation (1 or 2)
+          schema:
+            type: object
+            required:
+              - step
+            properties:
+              step:
+                type: number
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"  
 
 
   /private/home/{username}/overview:
@@ -126,6 +163,37 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/errorResponse"
+            
+  /private/home/{username}/investing/{sportsmanID}:
+    x-swagger-router-controller: investments.controller
+    get:
+      description: Get relationship between supporter and sportsman
+      operationId: getInvesting
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - name: sportsmanID
+          in: path
+          description: sportsmanID
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"          
 
             
   /private/home/{username}/watchlist:
@@ -182,8 +250,8 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/errorResponse"
-    delete:
-      description: Remove sportsman from user watchlist
+    put:
+      description: Delete sportsman from user watchlist
       operationId: deleteSportsman
       parameters:
         - name: authorization
@@ -259,6 +327,20 @@ paths:
           schema:
             $ref: "#/definitions/errorResponse"
             
+  /sportsmenmarket:
+    x-swagger-router-controller: sportsman.controller
+    get:
+      description: Get list of all sportsmen for market
+      operationId: getSportsmenMarket
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericArrayResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"          
             
   /sportsmen/{sportsmanID}:
     x-swagger-router-controller: sportsman.controller
@@ -374,12 +456,40 @@ paths:
     get:
       description: Get sportsman profile picture
       operationId: getSportsmanPicture
+      produces:
+        - image/png
+        - image/jpeg
+        - image/jpg 
       parameters:
         - name: sportsmanID
           in: path
           description: sportsman ID
           required: true
           type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+    post:
+      description: Set sportsman profile picture
+      operationId: setSportsmanPicture
+      consumes:
+         - multipart/form-data
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+        - in: formData
+          name: newPicture
+          type: file
+          description: The picture to upload.
       responses:
         "200":
           description: Success
@@ -446,7 +556,7 @@ definitions:
       sportsmanID:
         type: string
       tokenValue:
-        type: string
+        type: number
         
   sportsmanName:   
     type: object

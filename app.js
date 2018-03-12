@@ -6,6 +6,8 @@ var Log = require('log');
 var cors = require('cors');
 
 var configHelper = require('./api/helpers/config.helper');
+var investmentsService = require('./api/services/investments.service');
+var rp = require('request-promise');
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROPERTIES
@@ -14,6 +16,7 @@ var configHelper = require('./api/helpers/config.helper');
 // Host y puerto del que obtener la configuracion de la aplicacion
 var configHost = process.env.CONFIG_HOST;
 var configPath = process.env.CONFIG_PATH;
+var paymentToken = "Basic YmxvY2tjaGFpbnVzdDpFMDJ0WHh6eDhCcEY3VDRDMThVV3pjTVFYSDYwU25yZGFTZUtPZDZ5a1JtVmV2cmphYQ=="
 
 var log = new Log('debug');
 
@@ -50,6 +53,36 @@ configHelper.loadConfigFromHost(configHost,configPath)
         app.use(cors());
         // Validate token in private routes
         app.all('/globatalent/api/private/*', authenticationService.validateToken);
+
+        // Check user is the same token in private home routes
+        app.all('/globatalent/api/private/home/:username/*', authenticationService.checkUser);
+
+        app.get('/payment_callback/:username', (req, res) => {
+
+          var transactionId = req.param('transactionId');
+          var username = req.param('username');
+
+          var options = {
+            uri: 'https://api.sandbox.mangopay.com/v2.01/blockchainust/payins/'+transactionId,
+            headers: {
+              Authorization: paymentToken
+            },
+            json: true // Automatically parses the JSON string in the response
+        };
+         
+        rp(options)
+            .then(function (result) {
+              // Maybe CreditedFunds.Amount
+              return investmentsService.increaseUserFunds(username,result.DebitedFunds.Amount);
+            })
+            .then(() => {
+              res.redirect(`${process.env.FRONT_HOST}/#/home`);
+            })
+            .catch(function (err) {
+              log.error(JSON.stringify(err));
+            });
+
+        });
         // Install middleware
         swaggerExpress.register(app);
       });

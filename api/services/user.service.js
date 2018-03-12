@@ -25,7 +25,7 @@ var nameModule = '[User Service]';
 function createUser(user) {
   return new Promise((resolve, reject) => {
     try {
-      log.debug(`${nameModule} ${createUser.name}: data user: ${user}`)
+      log.debug(`${nameModule} ${createUser.name}: (IN): ${JSON.stringify(user)}`)
 
       var collection = user.role;
       
@@ -43,7 +43,7 @@ function createUser(user) {
       userRepository.insertUser(user, collection)
       .then(result => { 
         log.info(`-----> ${nameModule} ${createUser.name} OUT --> result: ${JSON.stringify(result)}`); 
-        sendMail(user.firstName, user.email);
+        sendMail(user.name + ' ' + user.surname, user.email);
         resolve(result); 
       })
       .catch(err => {
@@ -84,17 +84,20 @@ function checkUserExist(params) {
   });
 }
 
-function sendMail(name, email) {
+function sendMail(completeName, email) {
+
+  log.debug(`${nameModule} ${sendMail.completeName}: (IN) --> completeName: ${completeName}, email: ${email}`)
+
   var mailOptions = {
       from: appProperties.getConfig().email,
       to: email,
       subject: 'GlobaTalent - Please Confirm Your E-mail Address ',
       html:
       // html:
-      `Dear  ` + name + `,
+      `Dear  ` + completeName + `,
         <br><br>Wellcome to GlobaTalent , thanks for registering in.
       <br><br>You're receiving this e-mail because user:  </b>`+ email + ` has given yours as an e-mail address to connect their account.<br><br>
-      Kindly use the following link to confirm this is correct, go to: <a href="http://localhost:8080/home">Confirm User</a>
+      Kindly use the following link to confirm this is correct, go to: <a href="` + appProperties.getConfig().urlMail + `">Confirm User</a>
       <br><br>
       <h2><b style="color:#335aa1">Globa</b><b style="color:#4e87b1">talent</b></h2>
       <h6> <pre style="color:#000"> D E C E N T R A L I Z E D   S P O R T S </pre></h6>`
