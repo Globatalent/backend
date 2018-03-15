@@ -70,6 +70,120 @@ paths:
           schema:
             $ref: "#/definitions/errorResponse"
             
+
+#################################################### PROFILE
+
+
+  /private/{username}/profile:  
+    x-swagger-router-controller: profile.controller
+    get:
+      description: Get investor profile
+      operationId: getProfile
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+    put:
+      description: Update profile information
+      operationId: putProfile
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string  
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - name: atributes
+          in: body
+          description: User atributes to update
+          required: true
+          schema:
+            $ref: "#/definitions/profileArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /private/{username}/password:  
+    x-swagger-router-controller: profile.controller
+    put:
+      description: Update password
+      operationId: putPassword
+      parameters:
+        - name: authorization
+          in: header
+          description: session token
+          required: true
+          type: string  
+        - name: username
+          in: path
+          description: username
+          required: true
+          type: string
+        - name: atributes
+          in: body
+          description: New password
+          required: true
+          schema:
+            $ref: "#/definitions/passwordArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
+            
+            
+  /forgottenpassword:  
+    x-swagger-router-controller: profile.controller
+    put:
+      description: Generate new password
+      operationId: putForgottenPassword
+      parameters:
+        - name: atributes
+          in: body
+          description: Email to send the new password
+          required: true
+          schema:
+            $ref: "#/definitions/forgottenPasswordArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"
             
 #################################################### HOME     
 
@@ -598,6 +712,30 @@ definitions:
       amount:
         type: string
       sportsmanID:
+        type: string
+        
+  profileArguments:
+    type: object
+    properties:
+      name:
+        type: string
+      surname:
+        type: string
+      email:
+        type: string
+        
+  passwordArguments:
+    type: object
+    properties:
+      oldPassword:
+        type: string
+      newPassword:
+        type: string
+        
+  forgottenPasswordArguments:
+    type: object
+    properties:
+      email:
         type: string
         
         

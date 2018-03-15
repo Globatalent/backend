@@ -4,15 +4,15 @@ var payment =
     "AuthorId": "44684315",
     "CreditedUserId": "44684315",
     "DebitedFunds": {
-      "Currency": "EUR",
+      "Currency": "USD",
       "Amount": 0
     },
     "Fees": {
-      "Currency": "EUR",
+      "Currency": "USD",
       "Amount": 0
     },
     "ReturnURL": "http://www.google.com/",
-    "CreditedWalletId": "44684902",
+    "CreditedWalletId": "44879246",
     "CardType": "CB_VISA_MASTERCARD",
     "SecureMode": "DEFAULT",
     "Culture": "EN",

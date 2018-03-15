@@ -70,21 +70,26 @@ function authenticateUser(username, password, role) {
       log.debug(`${nameModule} ${authenticateUser.name}: username: ${username}, pwd <<OFUSCATED>>, role: ${role} `)
 
       var criteria = {
-        username: username,
         password: password
       };
+      if (username.indexOf("@") != -1) {
+        criteria.email = username
+      }
+      else {
+        criteria.username = username
+      }
 
       var collection = role;
-    
+
       userRepository.getUserByCriteria(criteria, collection)
-      .then(result => { 
-        log.info(`-----> ${nameModule} ${authenticateUser.name} OUT --> result: ${JSON.stringify(result)}`);  
-        resolve(true); 
-      })
-      .catch(err => {
-        reject(false);
-      })
-    }catch(err) {
+        .then(result => {
+          log.info(`-----> ${nameModule} ${authenticateUser.name} OUT --> result: ${JSON.stringify(result)}`);
+          resolve(result.username);
+        })
+        .catch(err => {
+          reject("error");
+        })
+    } catch (err) {
       log.error(`-----> ${nameModule} ${authenticateUser.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
       reject(err);
     }
@@ -157,18 +162,17 @@ function validateToken(req, res, next) {
 
 function checkUser(req, res, next) {
   log.debug(`${nameModule} ${checkUser.name} (IN)`);
-  
-  try{
+
+  try {
 
     var token = req.headers.authorization.split(" ")[1];
     log.debug(`${nameModule} ${checkUser.name} --> token: ${token}`);
 
     var payload = jwt.decode(token, appProperties.getConfig().token_secret);
-
-    if(payload && payload.sub && payload.sub.username === req.params.username){
+    if (payload && payload.sub && payload.sub.username === req.params.username) {
       refreshToken(token);
       next();
-    }else{
+    } else {
       let jsonResult = {
         "code": "401",
         "message": "Not your profile"

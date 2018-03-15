@@ -11,8 +11,6 @@ var appProperties = require('../helpers/config.helper');
 var userRepository = require('../repositories/user.repository');
 var paymentExpectations = require('../expectations/payment.expectations');
 
-console.log("Cargado el investments service");
-
 ////////////////////////////////////////////////////////////////////////////////
 // PROPERTIES
 ////////////////////////////////////////////////////////////////////////////////

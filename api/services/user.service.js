@@ -99,8 +99,35 @@ function sendMail(completeName, email) {
       <br><br>You're receiving this e-mail because user:  </b>`+ email + ` has given yours as an e-mail address to connect their account.<br><br>
       Kindly use the following link to confirm this is correct, go to: <a href="` + appProperties.getConfig().urlMail + `">Confirm User</a>
       <br><br>
-      <h2><b style="color:#335aa1">Globa</b><b style="color:#4e87b1">talent</b></h2>
-      <h6> <pre style="color:#000"> D E C E N T R A L I Z E D   S P O R T S </pre></h6>`
+      <img src="https://globatalent.com/wp-content/uploads/2018/02/180x60.png" alt="Logo Globatalent">`
+  };
+  mailer.sendMail(mailOptions, function (error, info) {
+      if (error) {
+          log.error(error);
+      } else {
+          lig.debug('Message sent: ' + info.response);
+      }
+  });
+}
+
+function sendMailPassword(completeName, email, newPassword) {
+
+  log.debug(`${nameModule} ${sendMailPassword.completeName}: (IN) --> completeName: ${completeName}, email: ${email}`)
+
+  var mailOptions = {
+      from: appProperties.getConfig().email,
+      to: email,
+      subject: 'GlobaTalent - Reset password request',
+      html:
+      // html:
+
+      `Dear  ` + completeName + `,
+
+      <br><br>You're receiving this e-mail because you or someone else has requested a password for your user account.<br>
+      <br>Your new password is <b>` + newPassword + `</b> , please change it as soon as possible.<br>
+      <br>Thank you for using globatalent!<br><br>
+
+      <img src="https://globatalent.com/wp-content/uploads/2018/02/180x60.png" alt="Logo Globatalent">`
   };
   mailer.sendMail(mailOptions, function (error, info) {
       if (error) {
@@ -114,5 +141,6 @@ function sendMail(completeName, email) {
 
 module.exports = {
   createUser,
-  checkUserExist
+  checkUserExist,
+  sendMailPassword
 };

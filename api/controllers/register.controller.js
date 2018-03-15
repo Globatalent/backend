@@ -18,23 +18,26 @@ var nameController = '[Register controller]';
 ////////////////////////////////////////////////////////////////////////////////
 
 function register(req, res) {
+  try {
+    var params = req.body;
 
-  var params = req.body;
-  
-  log.debug(`-----> ${nameController} ${register.name} (IN) --> params: ${JSON.stringify(params)}`);
-  
-  userService.checkUserExist(params)
-  .then(result => { 
-    return userService.createUser(params);
-  })
-  .then(result => {    
-    res.json({"message": `Created ${result.username} succesfully`});
-  })
-  .catch(err => {
+    log.debug(`-----> ${nameController} ${register.name} (IN) --> params: ${JSON.stringify(params)}`);
+
+    userService.checkUserExist(params)
+      .then(result => {
+        return userService.createUser(params);
+      })
+      .then(result => {
+        res.json({ "message": `Created ${result.username} succesfully` });
+      })
+      .catch(err => {
+        log.error(err)
+        res.status(401).send({ "message": "User already exist!" }); //UNAUTHORIZED
+      })
+  } catch (err) {
     log.error(err)
-    res.status(401).send({"message": "User already exist!"}); //UNAUTHORIZED
-  })
-
+    res.status(500).send({ "message": "Register failed" });
+  }
 }
 
 module.exports = {

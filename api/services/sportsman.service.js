@@ -143,7 +143,7 @@ function putTokens(username, sportsmanID, amount) {
         .then(result => {
           resultInvestments = result;
           log.info(`-----> ${nameModule} ${putTokens.name} OUT --> result: ${JSON.stringify(result)}`);
-          return checkparams(resultGetSportsmanStock, resultInvestments.overview.cashFounds, amount)
+          return checkparams(resultGetSportsmanStock, resultInvestments.overview, amount)
         })
         .then(result => {
           if (result.result == "success") {
@@ -208,18 +208,22 @@ function setSportsmanPicture(params) {
   });
 }
 
-function checkparams(resultGetSportsmanStock, resultInvestments, amount) {
-  var fcashFounds = parseFloat(resultInvestments)
+function checkparams(resultGetSportsmanStock, overview, amount) {
+  var fcashFounds = parseFloat(overview.cashFounds)
   var famount = parseFloat(amount)
   var ftokenValue = parseFloat(resultGetSportsmanStock.tokens.tokenValue)
   var ftokenSupply = parseFloat(resultGetSportsmanStock.tokens.currentSupply)
 
-  if (fcashFounds < (famount * ftokenValue)) {
-    return { result: "failed", message: "not enough founds" }
+  if (overview.validate1 == false) {
+    return { result: "failed", message: "You have to validate your account first" }
+  } else if (famount <= 0){
+    return { result: "failed", message: "Number of tokens must be a positive value" }
+  } else if (fcashFounds < (famount * ftokenValue)) {
+    return { result: "failed", message: "Not enough funds" }
   } else if (ftokenSupply < famount) {
-    return { result: "failed", message: "not enough tokens availables to buy" }
+    return { result: "failed", message: "Not enough tokens available to buy" }
   } else {
-    return { result: "success", message: "tokens have been added" }
+    return { result: "success", message: "Tokens have been added" }
   }
 }
 

@@ -34,7 +34,6 @@ configHelper.loadConfigFromHost(configHost,configPath)
   .then(result => {
     try {
 
-      log.debug("Config leida con EXITO:"+JSON.stringify(result));
       configHelper.setConfig(result);
 
       //With the configuration loaded, we can use the Authentication Service
