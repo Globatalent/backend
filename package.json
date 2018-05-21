@@ -8,6 +8,7 @@
   "license": "",
   "main": "app.js",
   "dependencies": {
+    "@requestnetwork/request-network.js": "^0.6.2",
     "base64-img": "^1.0.4",
     "cors": "^2.8.4",
     "express": "^4.12.3",
@@ -21,7 +22,8 @@
     "read-yaml": "^1.1.0",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
-    "swagger-express-mw": "^0.1.0"
+    "swagger-express-mw": "^0.1.0",
+    "truffle-hdwallet-provider": "0.0.5"
   },
   "devDependencies": {
     "should": "^7.1.0",

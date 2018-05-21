@@ -23,17 +23,16 @@ function login(req, res) {
   try {
     var username = req.body.username;
     var password = req.body.password;
-    var role = req.body.role;
 
-    log.debug(`-----> ${nameController} ${login.name} (IN) --> username: ${username}, password: <<OFUSCATED>>, role ${role}`);
+    log.debug(`-----> ${nameController} ${login.name} (IN) --> username: ${username}, password: <<OFUSCATED>>`);
 
-    authenticationService.authenticateUser(username, password, role)
+    authenticationService.authenticateUser(username, password)
       .then(result => {
         log.info(`-----> ${nameController} ${login.name} OUT --> result: ${result}`);
         log.info(`User ${username} authenticated!`);
         var userInfo = {
-          username: result,
-          role: role
+          username: result.username,
+          role: result.role
         }
         log.info(`User Info ${JSON.stringify(userInfo)}`);
         var generatedToken = authenticationService.generateToken(userInfo);

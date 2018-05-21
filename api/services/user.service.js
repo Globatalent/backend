@@ -9,6 +9,7 @@ var Log = require('log');
 
 var appProperties = require('../helpers/config.helper');
 var userRepository = require('../repositories/user.repository');
+var sportsmanService = require('../services/sportsman.service');
 var mailer = require('../helpers/mailer');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,12 +24,13 @@ var nameModule = '[User Service]';
 ////////////////////////////////////////////////////////////////////////////////
 
 function createUser(user) {
+  var collection = user.role;
+  
+  if(collection == 'investor'){
   return new Promise((resolve, reject) => {
     try {
       log.debug(`${nameModule} ${createUser.name}: (IN): ${JSON.stringify(user)}`)
-
-      var collection = user.role;
-      
+      collection = 'investor';
       //Investment Data
       user.investments = [];
       user.watchlist  = [];
@@ -39,6 +41,10 @@ function createUser(user) {
       //Create two factor authentication (False because is pending)
       user.overview.validate1 = false;
       user.overview.validate2 = false;
+      delete user.sportsmanID;
+      delete user.videos;
+      delete user.country;
+      delete user.residence;
 
       userRepository.insertUser(user, collection)
       .then(result => { 
@@ -54,6 +60,92 @@ function createUser(user) {
       reject(err);
     }
   });
+  }else if(collection == 'sportsman'){
+    
+    // EDITAR CAMPOS PARA GUARDAR LO QUE REALMENTE NECESITA EL SPORTSMAN
+      return new Promise((resolve, reject) => {
+    try {
+      log.debug(`${nameModule} ${createUser.name}: (IN): ${JSON.stringify(user)}`)
+      //userRepository.getUserByCriteria(criteria, "sportsman")
+      user.sportsmanID = user.username;
+      collection = 'sportsman';
+      user.noOfLikes = 0;
+      var secondLetterToken = user.completeName.split(" "); 
+
+      // Tokens Data
+      user.tokens = {};
+      user.tokens.totalSupply = parseFloat(Math.round((Math.random() * 100000+1)));
+      user.tokens.currentSupply = user.tokens.totalSupply;
+      user.tokens.tokenValue = parseFloat(Math.round((Math.random() * 1000))/100);
+      user.tokens.tokenName = (user.completeName.charAt(0).toUpperCase()) + (secondLetterToken[1].charAt(0).toUpperCase()) + 'T';
+
+      //Investment Data
+      user.overview   = {};
+      user.overview.completeName = user.completeName;
+      user.overview.country = user.country;
+      user.overview.sport = '';
+      user.overview.about = '';
+      user.overview.noOfLikes = user.noOfLikes;
+      user.overview.sport = user.sport;
+
+      // Personal Info Data
+      user.personalInfo = {};
+      user.personalInfo.residence = user.residence;
+      user.personalInfo.born = user.birthdate;
+      user.personalInfo.birthdate = '';
+      user.personalInfo.height = '';
+      user.personalInfo.weight = '';
+      user.personalInfo.coach = '';
+      user.personalInfo.proDate = '';
+      user.personalInfo.team = '';
+
+      // Social Data
+
+      user.social = {};
+      user.social.facebookLink = '';
+      user.social.linkedinLink = '';
+      user.social.twitterLink = '';
+      user.social.youtubeLink = '';
+      user.social.vimeoLink = '';
+      user.social.instagramLink = '';
+      // Info Data
+
+      user.info = {};
+      user.info.videos = user.videos;
+      user.info.descriptionText = '';
+
+      // Milestones & Expenses
+      user.milestones = [];
+      user.expenses = [];
+
+      userRepository.insertUser(user, collection)
+      .then(result => { 
+        log.info(`-----> ${nameModule} ${createUser.name} OUT --> result: ${JSON.stringify(result)}`); 
+        sendMail(user.overview.completeName, user.email);
+        resolve(result); 
+      })
+      .then(result => { 
+        log.info(`-----> ${nameModule} ${createUser.name} OUT --> result: ${JSON.stringify(result)}`); 
+        
+        resolve(result); 
+      })
+      .catch(err => {
+        reject(err);
+      })
+    }catch(err) {
+      log.error(`-----> ${nameModule} ${createUser.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+      reject(err);
+    }
+
+      delete user.completeName;
+      delete user.role;
+      delete user.birthdate;
+      delete user.videos;
+      delete user.country;
+      delete user.residence;
+      delete user.sport;
+  });
+  }
 }
 
 function checkUserExist(params) {

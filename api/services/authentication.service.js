@@ -63,11 +63,11 @@ function refreshToken(token) {
 
 // Authenticates the user by username and password parameters
 // Returns the user if the user is authenticated correctly or null in another case
-function authenticateUser(username, password, role) {
+function authenticateUser(username, password) {
 
   return new Promise((resolve, reject) => {
     try {
-      log.debug(`${nameModule} ${authenticateUser.name}: username: ${username}, pwd <<OFUSCATED>>, role: ${role} `)
+      log.debug(`${nameModule} ${authenticateUser.name}: username: ${username}, pwd <<OFUSCATED>>,`)
 
       var criteria = {
         password: password
@@ -79,15 +79,20 @@ function authenticateUser(username, password, role) {
         criteria.username = username
       }
 
-      var collection = role;
-
-      userRepository.getUserByCriteria(criteria, collection)
+      userRepository.getUserByCriteria(criteria, "investor")
         .then(result => {
           log.info(`-----> ${nameModule} ${authenticateUser.name} OUT --> result: ${JSON.stringify(result)}`);
-          resolve(result.username);
+          resolve({username: result.username, role: "investor"});
         })
         .catch(err => {
-          reject("error");
+          userRepository.getUserByCriteria(criteria, "sportsman")
+          .then( result => {
+            console.log(result.username)
+            resolve({username: result.username, role: "sportsman"});
+          })
+          .catch(err => {
+            reject("error");
+          })
         })
     } catch (err) {
       log.error(`-----> ${nameModule} ${authenticateUser.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);

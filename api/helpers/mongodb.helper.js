@@ -72,7 +72,32 @@ function connect(){
 
 function getItem(criteria, myCollection){
   var nameMethod = '[getItem]';
-  log.info(`${nameModule} ${nameMethod} -----> Getting document by ${criteria}, collection ${myCollection}`);
+  log.info(`${nameModule} ${nameMethod} -----> Getting document by ${JSON.stringify(criteria)}, collection ${myCollection}`);
+  return new Promise((resolve, reject) => {
+    connect()
+    .then(db =>{
+      var collection = db.collection(myCollection);
+      // Find some documents
+      collection.find(criteria).toArray(function(err, docs) {
+        if(docs.length === 0){
+          log.debug(`${nameModule} ${nameMethod} -----> Not document found by ${JSON.stringify(criteria)} in ${myCollection}`);
+        // db.close();
+          reject('Not item found in DB');
+        }
+        else{
+          log.info(`${nameModule} ${nameMethod} -----> Document found in mongoDB`);
+          //log.debug(`${nameModule} ${nameMethod} -----> Item -> ${JSON.stringify(docs[0])}`);
+          // db.close();
+          resolve(docs[0]);
+        }
+      });
+    })
+  });
+}
+
+function getItems(criteria, myCollection){
+  var nameMethod = '[getItem]';
+  log.info(`${nameModule} ${nameMethod} -----> Getting document by ${JSON.stringify(criteria)}, collection ${myCollection}`);
   return new Promise((resolve, reject) => {
     connect()
     .then(db =>{
@@ -81,14 +106,14 @@ function getItem(criteria, myCollection){
       collection.find(criteria).toArray(function(err, docs) {
         if(docs.length === 0){
           log.debug(`${nameModule} ${nameMethod} -----> Not document found by ${criteria} in ${myCollection}`);
-         // db.close();
+        // db.close();
           reject('Not item found in DB');
         }
         else{
           log.info(`${nameModule} ${nameMethod} -----> Document found in mongoDB`);
-          log.debug(`${nameModule} ${nameMethod} -----> Item -> ${JSON.stringify(docs[0])}`);
-         // db.close();
-          resolve(docs[0]);
+          //log.debug(`${nameModule} ${nameMethod} -----> Item -> ${JSON.stringify(docs[0])}`);
+        // db.close();
+          resolve(docs);
         }
       });
     })
@@ -105,12 +130,12 @@ function insertItem (item, myCollection){
       collection.insert(item, function(err, result) {
         if(err){
           log.error(`${nameModule} ${nameMethod} -----> Error Inserting ${JSON.stringify(item)} in ${myCollection} -> ${err}`);
-         // db.close();
+        // db.close();
           reject(item);
         }
         else{
           log.info(`${nameModule} ${nameMethod} -----> Item inserted succesfully`);
-         // db.close();
+        // db.close();
           resolve(item);
         }
       });
@@ -128,12 +153,12 @@ function updateItem(criteria, item, myCollection){
       collection.findOneAndUpdate(criteria, item, function(err, result) {
         if(err){
           log.error(`${nameModule} ${nameMethod} -----> Error updating item -> ${err}`);
-         // db.close();
+        // db.close();
           reject(err);
         }
         else{
           log.info(`${nameModule} ${nameMethod} -----> item updated succesfully`);
-         // db.close();
+        // db.close();
           resolve(result);
         }
       });
@@ -151,11 +176,11 @@ function deleteItem(item, myCollection){
       collection.deleteOne(item, function(err, result)  {
         if(err){
           log.error(`${nameModule} ${nameMethod} -----> Error deleting item -> ${err}`);
-         // db.close();
+        // db.close();
           reject(err);
         }else{
           log.info(`${nameModule} ${nameMethod} -----> Item removed succesfully`);
-         // db.close();
+        // db.close();
           resolve(result);
         }
       })
@@ -168,5 +193,6 @@ module.exports = {
   getItem,
   insertItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  getItems
 }

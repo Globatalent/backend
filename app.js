@@ -16,7 +16,7 @@ var rp = require('request-promise');
 // Host y puerto del que obtener la configuracion de la aplicacion
 var configHost = process.env.CONFIG_HOST;
 var configPath = process.env.CONFIG_PATH;
-var paymentToken = "Basic YmxvY2tjaGFpbnVzdDpFMDJ0WHh6eDhCcEY3VDRDMThVV3pjTVFYSDYwU25yZGFTZUtPZDZ5a1JtVmV2cmphYQ=="
+//var paymentToken = "Basic YmxvY2tjaGFpbnVzdDpFMDJ0WHh6eDhCcEY3VDRDMThVV3pjTVFYSDYwU25yZGFTZUtPZDZ5a1JtVmV2cmphYQ=="
 
 var log = new Log('debug');
 
@@ -64,11 +64,10 @@ configHelper.loadConfigFromHost(configHost,configPath)
           var options = {
             uri: 'https://api.sandbox.mangopay.com/v2.01/blockchainust/payins/'+transactionId,
             headers: {
-              Authorization: paymentToken
+            Authorization: paymentToken
             },
             json: true // Automatically parses the JSON string in the response
-        };
-         
+          };
         rp(options)
             .then(function (result) {
               // Maybe CreditedFunds.Amount

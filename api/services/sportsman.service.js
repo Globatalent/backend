@@ -4,11 +4,11 @@ var Log = require('log');
 const _ = require('lodash');
 
 var appProperties = require('../helpers/config.helper');
-var expectations = require('../expectations/sportsman.expectations');
 var pictureHelper = require('../helpers/picture.helper');
 var userRepository = require('../repositories/user.repository');
 var sportsmanRepository = require('../repositories/sportsman.repository');
 var investmentsService = require('../services/investments.service');
+var mongoDbHelper = require('../helpers/mongodb.helper');
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,10 +23,29 @@ var collection = "sportsman"
 
 function getSportsmen() {
   return new Promise((resolve, reject) => {
-    return resolve(
-      expectations.sportsmen.map(sportsman => _.pick(sportsman, ['_id', 'completeName', 'sport', 'country']))
 
-    );
+    var criteria = {
+    };
+    log.info(`-----> ${nameModule} ${getSportsmen.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
+    userRepository.getUsersByCriteria(criteria, "sportsman")
+      .then(result => {
+        var resume = result.map(player => player = {
+          sportsmanID: player.sportsmanID,
+          completeName: player.overview.completeName,
+          sport: player.overview.sport,
+          country: player.overview.country
+        })
+        console.log("****************************")
+        console.log(JSON.stringify(resume))
+        return resume
+      })
+      .then(result => {
+        resolve(result)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${getSportsmen.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err);
+      });
   });
 }
 
@@ -49,7 +68,6 @@ function getSportsmenMarket() {
 
 function getSportsman(params) {
   return new Promise((resolve, reject) => {
-    var sportsman = expectations.sportsmen.find(sportman => sportman._id == params.id)
 
     var criteria = {
       sportsmanID: params.id
@@ -57,13 +75,13 @@ function getSportsman(params) {
     log.info(`-----> ${nameModule} ${getSportsman.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
     userRepository.getUserByCriteria(criteria, "sportsman")
       .then(result => {
-        sportsman.noOfLikes = result.noOfLikes
+        return result.overview
       })
       .then(result => {
-        resolve(sportsman)
+        resolve(result)
       })
       .catch(err => {
-        log.error(`-----> ${nameModule} ${getSportsmenMarket.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        log.error(`-----> ${nameModule} ${getSportsman.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
         reject(err);
       });
   });
@@ -71,25 +89,51 @@ function getSportsman(params) {
 
 function getSportsmanDetail(params) {
   return new Promise((resolve, reject) => {
-    return resolve(
-      expectations.sportsmenInfo.find(sportman => sportman._id == params.id)
-    );
+
+    var criteria = {
+      sportsmanID: params.id
+    };
+    log.info(`-----> ${nameModule} ${getSportsmanDetail.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
+    userRepository.getUserByCriteria(criteria, "sportsman")
+      .then(result => {
+        return Object.assign({},result.personalInfo, result.social, result.info)
+      })
+      .then(result => {
+        resolve(result)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${getSportsmanDetail.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err);
+      });
   });
 }
 
 function getSportsmanMilestones(params) {
   return new Promise((resolve, reject) => {
-    let sportsman = expectations.sportsmenMilestones.find(sportman => sportman._id == params.id);
-    return resolve(
-      sportsman ? sportsman.milestones : undefined
-    );
+
+    var criteria = {
+      sportsmanID: params.id
+    };
+    log.info(`-----> ${nameModule} ${getSportsmanMilestones.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
+    userRepository.getUserByCriteria(criteria, "sportsman")
+      .then(result => {
+        return result.milestones
+      })
+      .then(result => {
+        resolve(result)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${getSportsmanMilestones.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err);
+      });
   });
 }
 
 function getSportsmanStock(sportsmanID) {
+  
   return new Promise((resolve, reject) => {
-
     try {
+      log.info(`-----> ${nameModule} ${getSportsmanStock.name} (IN***********************) -> username: ${JSON.stringify(sportsmanID)}`);
       log.info(`-----> ${nameModule} ${getSportsmanStock.name} (IN) -> username: ${JSON.stringify(sportsmanID)}`);
 
       var criteria = {
@@ -115,10 +159,22 @@ function getSportsmanStock(sportsmanID) {
 
 function getSportsmanExpenses(params) {
   return new Promise((resolve, reject) => {
-    let sportsman = expectations.sportsmenExpenses.find(sportman => sportman._id == params.id);
-    return resolve(
-      sportsman ? sportsman.expenses : undefined
-    );
+
+    var criteria = {
+      sportsmanID: params.id
+    };
+    log.info(`-----> ${nameModule} ${getSportsmanExpenses.name} (IN) -> criteria: ${JSON.stringify(criteria)}`);
+    userRepository.getUserByCriteria(criteria, "sportsman")
+      .then(result => {
+        return result.expenses
+      })
+      .then(result => {
+        resolve(result)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${getSportsmanExpenses.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err);
+      });
   });
 }
 
@@ -127,14 +183,11 @@ function putTokens(username, sportsmanID, amount) {
   return new Promise((resolve, reject) => {
 
     try {
-      log.info(`-----> ${nameModule} ${putTokens.name} (IN) -> username: ${JSON.stringify(username)}`);
+      log.info(`-----> ${nameModule} ${putTokens.name} (IN) -> username: ${username}, sportsmanID: ${sportsmanID}, amount: ${amount}`);
 
       var resultGetSportsmanStock;
       var resultInvestments;
       var checkParamsResult;
-
-      let sportsmanExpectation = expectations.sportsmen.find(sportsman => sportsman._id === sportsmanID);
-
       getSportsmanStock(sportsmanID)
         .then(result => {
           resultGetSportsmanStock = result;          
@@ -148,7 +201,7 @@ function putTokens(username, sportsmanID, amount) {
         .then(result => {
           if (result.result == "success") {
             checkParamsResult = result
-            return moveTokens(username, sportsmanID, amount, resultGetSportsmanStock.tokens, sportsmanExpectation.completeName)
+            return moveTokens(username, sportsmanID, amount, resultGetSportsmanStock.tokens, resultGetSportsmanStock.overview.completeName)
           }
           else {
             resolve(result)
@@ -190,20 +243,40 @@ function getSportsmanPicture(params) {
 
 function setSportsmanPicture(params) {
   return new Promise((resolve, reject) => {
-    let sportsman = expectations.sportsmenPicture.find(sportman => sportman._id == params.id);
-    sportsmanRepository.setPicture(
-      {
-        sportsmanId: params.id,
-        picture: params.file
-      },
-      'sportsman_images'
-    ).then(res => {
-      return resolve(true);
-    }).catch(err => {
-      log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Error setting image`)
-      return reject(err)
+    getSportsmanPicture(params)
+    .then(picture => {
+      sportsmanRepository.editPicture(
+        {
+          sportsmanId: params.id
+        },
+        {
+          sportsmanId: params.id,
+          picture: params.file,
+        },
+          'sportsman_images'
+        ).then(res =>{
+          return resolve(true);
+        }).catch(err =>{
+          log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Error setting image`)
+          return reject(err)
+        })
     })
-    log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Sportsman with id ${params.id} not found`)
+    .catch(err =>{
+      // No tengo foto (insert)
+      sportsmanRepository.setPicture(
+        {
+          sportsmanId: params.id,
+          picture: params.file
+        },
+        'sportsman_images'
+      ).then(res => {
+        return resolve(true);
+      }).catch(err => {
+        log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Error setting image`)
+        return reject(err)
+      });
+    }) 
+    // log.debug(`-----> ${nameModule} ${setSportsmanPicture.name} Sportsman with id ${params.id} not found`)
 
   });
 }
@@ -268,6 +341,9 @@ function extractTokensFromSportsman(tokenAmount, sportsmanID) {
 
 function extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams, sportsmanID, fullName) {
   return new Promise((resolve, reject) => {
+    log.info('------------------------ full name valor : ');
+    log.info('------------------------ full name valor : '+fullName);
+    log.info('------------------------ full name valor : ');
     log.info(`-----> ${nameModule} ${extractFoundsFromUserAndInsertTokens.name} (IN) -> username: ${username} amount: ${tokenAmount}`);
     userRepository.getUserByCriteria({ username: username }, "investor")
       .then(userResult => {
@@ -296,14 +372,35 @@ function extractFoundsFromUserAndInsertTokens(username, tokenAmount, tokenParams
 
 function addTokenInfo(sportsmanData) {
   return new Promise((resolve, reject) => {
-    userRepository.getUserByCriteria({ sportsmanID: sportsmanData._id }, "sportsman")
+    userRepository.getUserByCriteria({ sportsmanID: sportsmanData.sportsmanID }, "sportsman")
       .then(result => {
         Object.assign(sportsmanData, result.tokens)
-        sportsmanData.changes = parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1;
+        sportsmanData.changes = parseFloat(Math.round((Math.random() * 400)-200) / 100);
         resolve(sportsmanData)
       })
       .catch(err => {
         log.error(`-----> ${nameModule} ${addTokenInfo.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+        reject(err)
+      })
+  })
+}
+
+function putSportsman(parameters) {
+  return new Promise((resolve, reject) => {
+    log.info(`-----> ${nameModule} ${putSportsman.name} (IN) -> username: ${parameters.sportsmanID}`);
+    userRepository.getUserByCriteria({ sportsmanID: parameters.sportsmanID }, "sportsman")
+      .then(sportsmanResult => {
+        Object.assign(sportsmanResult,parameters.sportsmanNewInfo)
+        return userRepository.updateUser(sportsmanResult, "sportsman")
+      })
+      .then(() => {
+        return userRepository.getUserByCriteria({ sportsmanID: parameters.sportsmanID }, "sportsman")
+      })
+      .then(result => {
+        resolve(result)
+      })
+      .catch(err => {
+        log.error(`-----> ${nameModule} ${putSportsman.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
         reject(err)
       })
   })
@@ -319,5 +416,6 @@ module.exports = {
   getSportsmanPicture,
   setSportsmanPicture,
   putTokens,
-  getSportsmenMarket
+  getSportsmenMarket,
+  putSportsman
 }

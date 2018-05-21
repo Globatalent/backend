@@ -149,13 +149,13 @@ function getSportsmanMilestones(req, res) {
 }
 
 function getSportsmanStock(req, res) {
+  //log.info(`-----> ${nameController} ${getSportsmanStock.name} IN *************************************************--> ${JSON.stringify(params)}`);
 
   try {
-
     const params = {
       sportsmanID: req.swagger.params.sportsmanID.value
     };
-
+    
     log.info(`-----> ${nameController} ${getSportsmanStock.name} IN --> ${JSON.stringify(params)}`);
 
     sportsmanService
@@ -210,11 +210,11 @@ function putTokens(req, res) {
   try {
     var parameters = {
       username: req.body.username,
-      sportsmanID: req.body.sportsmanID,
+      sportsmenId: req.body.sportsmenId,
       amount: req.body.amount
     }
-    log.info(`-----> ${nameController} ${putTokens.name} IN --> ${parameters.username}`);
-    sportsmanService.putTokens(parameters.username, parameters.sportsmanID, parameters.amount)
+    log.info(`-----> ${nameController} ${putTokens.name} IN --> parameters ${JSON.stringify(parameters)}`);
+    sportsmanService.putTokens(parameters.username, parameters.sportsmenId, parameters.amount)
       .then(result => {
         log.info(`-----> ${nameController} ${putTokens.name} OUT --> result: ${JSON.stringify(result)}`);
         res.json(result)
@@ -226,6 +226,28 @@ function putTokens(req, res) {
   } catch (err) {
     log.error(err)
     res.status(500).send({ "message": "Fail get tokens" });
+  }
+}
+
+function putSportsman(req, res) {
+  try {
+    var parameters = {
+      sportsmanNewInfo: req.body,
+      sportsmanID: req.swagger.params.sportsmanID.value
+    }
+    log.info(`-----> ${nameController} ${putSportsman.name} IN --> ${parameters.username}`);
+    sportsmanService.putSportsman(parameters)
+      .then(result => {
+        log.info(`-----> ${nameController} ${putSportsman.name} OUT --> result: ${JSON.stringify(result)}`);
+        res.json(result)
+      })
+      .catch(err => {
+        log.error(err)
+        res.status(500).send({ "message": "Fail update sportsman" });
+      })
+  } catch (err) {
+    log.error(err)
+    res.status(500).send({ "message": "Fail update sportsman" });
   }
 }
 
@@ -291,5 +313,6 @@ module.exports = {
   putTokens,
   getSportsmanPicture,
   setSportsmanPicture,
-  getSportsmenMarket
+  getSportsmenMarket,
+  putSportsman
 }

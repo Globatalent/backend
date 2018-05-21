@@ -19,6 +19,9 @@ const CHARTTOTALELEMENTS = 5
 ////////////////////////////////////////////////////////////////////////////////
 
 function getInvestments(req, res) {
+  
+  var overviewChange
+  
   try {
     var parameters = {
       username: req.swagger.params.username.value
@@ -27,8 +30,12 @@ function getInvestments(req, res) {
     investmentsService.getInvestorField(parameters.username, "investments")
       .then(result => {
         log.info(`-----> ${nameController} ${getInvestments.name} OUT --> result: ${JSON.stringify(result)}`);
-        result.investments.forEach(elem => elem.changes = parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1)
-        res.json(result)
+        overviewChange = result
+        overviewChange.investments.forEach(elem => 
+          // elem.changes = parseFloat(Math.floor((Math.random() * 10+1)))/10+1)
+          elem.changes = parseFloat(Math.round((Math.random() * 400)-200) / 100))
+
+        res.json(overviewChange)
       })
       .catch(err => {
         log.error(err)
@@ -50,7 +57,9 @@ function getWatchlist(req, res) {
     investmentsService.getInvestorField(parameters.username, "watchlist")
       .then(result => {
         log.info(`-----> ${nameController} ${getWatchlist.name} OUT --> result: ${JSON.stringify(result)}`);
-        result.watchlist.forEach(elem => elem.changes = parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1)
+        result.watchlist.forEach(elem => elem.changes = 
+        //parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1)
+        elem.changes = parseFloat(Math.round((Math.random() * 400)-200) / 100))
         res.json(result)
       })
       .catch(err => {
@@ -120,7 +129,7 @@ function getInvestmentsOverview(req, res) {
         overviewResult.overview.totalInvest = !overviewResult.overview.validate1 ? 0 : !overviewResult.overview.validate2 ? 5000 : 10000
         if (overviewResult.overview.chart.hasData == true) {
           overviewResult.overview.tokenCapitalization = overviewResult.overview.chart.datasets.reduce((acc, elem) => elem + acc)
-          overviewResult.overview.changes = parseFloat(Math.floor((Math.random() * 10) + 1)) / 10 + 1;
+          overviewResult.overview.changes = parseFloat(Math.round((Math.random() * 400)-200) / 100);
         }
         res.json(overviewResult)
       })
@@ -144,11 +153,16 @@ function putFounds(req, res) {
     investmentsService.putFounds(parameters.username, parameters.amount)
       .then(result => {
         log.info(`-----> ${nameController} ${putFounds.name} OUT --> result: ${JSON.stringify(result)}`);
-        res.json(result)
+        if (result.redirectURL == null) {
+          res.status(418).send({ "message": "Payment platform does not accept that much money yet" });
+        }
+        else {
+          res.json(result)
+        }
       })
       .catch(err => {
         log.error(err)
-        res.status(500).send({ "message": "Fail put founds" });
+        res.status(418).send({ "message": err });
       })
   } catch (err) {
     log.error(err)

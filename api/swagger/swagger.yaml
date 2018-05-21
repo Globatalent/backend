@@ -475,7 +475,31 @@ paths:
         default:
           description: Error
           schema:
-            $ref: "#/definitions/errorResponse" 
+            $ref: "#/definitions/errorResponse"
+    put:
+      description: Add founds to user account
+      operationId: putSportsman
+      parameters:
+        - name: sportsmanID
+          in: path
+          description: sportsman ID
+          required: true
+          type: string
+        - name: atributes
+          in: body
+          description: Username and amount
+          required: true
+          schema:
+            $ref: "#/definitions/sportsmanUpdateArguments"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/genericResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/errorResponse"        
             
             
   /sportsmen/{sportsmanID}/information:
@@ -593,7 +617,7 @@ paths:
       description: Set sportsman profile picture
       operationId: setSportsmanPicture
       consumes:
-         - multipart/form-data
+        - multipart/form-data
       parameters:
         - name: sportsmanID
           in: path
@@ -612,8 +636,7 @@ paths:
         default:
           description: Error
           schema:
-            $ref: "#/definitions/errorResponse"          
-            
+            $ref: "#/definitions/errorResponse"
             
   /private/sportsmen/tokens:  
     x-swagger-router-controller: sportsman.controller
@@ -661,8 +684,6 @@ definitions:
         type: string
       password:
         type: string
-      role:
-        type: string
         
   sportsmanArguments:
     type: object
@@ -671,6 +692,9 @@ definitions:
         type: string
       tokenValue:
         type: number
+        
+  sportsmanUpdateArguments:
+    type: object
         
   sportsmanName:   
     type: object

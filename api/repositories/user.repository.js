@@ -43,7 +43,32 @@ function getUserByCriteria(criteria, collection) {
         reject(ERROR_GETUSER);
       })
 
-   } catch(err) {
+  } catch(err) {
+      log.error(`-----> ${nameModule} ${getUserByCriteria.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
+      reject(ERROR_GETUSER);
+    }    
+  })
+}
+
+function getUsersByCriteria(criteria, collection) {
+
+  return new Promise((resolve, reject) => {
+
+    try {
+
+      log.info(`-----> ${nameModule} ${getUserByCriteria.name} (IN) -> criteria: ${JSON.stringify(criteria)}, collection: ${collection}`);
+      
+      mongoDbHelper.getItems(criteria, collection)
+      .then(result => {   
+        delete result._id;
+        resolve(result);
+      })
+      .catch(error => {
+        log.error(`-----> ${nameModule} ${getUserByCriteria.name} (ERROR) -> ${error.message}`);
+        reject(ERROR_GETUSER);
+      })
+
+  } catch(err) {
       log.error(`-----> ${nameModule} ${getUserByCriteria.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
       reject(ERROR_GETUSER);
     }    
@@ -68,7 +93,7 @@ function insertUser(user, collection) {
         reject(ERROR_INSERTUSER);
       })
 
-   } catch(err) {
+  } catch(err) {
       log.error(`-----> ${nameModule} ${insertUser.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
       reject(ERROR_INSERTUSER);
     }    
@@ -94,7 +119,7 @@ function updateUser(user, collection) {
         reject(ERROR_INSERTUSER);
       })
 
-   } catch(err) {
+  } catch(err) {
       log.error(`-----> ${nameModule} ${updateUser.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
       reject(ERROR_INSERTUSER);
     }    
@@ -118,7 +143,7 @@ function itemExist(criteria, collection) {
         resolve(false);
       })
 
-   } catch(err) {
+  } catch(err) {
       log.error(`-----> ${nameModule} ${itemExist.name} (ERROR) -> error generico: ${JSON.stringify(err.stack)}`);
       reject(ERROR_ITEM_EXIST);
     }    
@@ -136,6 +161,7 @@ module.exports = {
   updateUser,
   ERROR_GETUSER,
   ERROR_INSERTUSER,
-  ERROR_ITEM_EXIST
+  ERROR_ITEM_EXIST,
+  getUsersByCriteria
 };
 
